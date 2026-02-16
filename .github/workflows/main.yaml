@@ -1,0 +1,29 @@
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing GitHub Actions 🚀
+on:
+  repository_dispatch:
+    types: [run-tests, deploy-to-prod]
+jobs:
+  prod-check:
+    if: ${{ github.ref  == 'refs/heads/main'}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run a one-line script
+        if: ${{ github.event.action == 'deploy-to-prod'}}
+        run: echo "Deploying to prod..."
+      - name: Echo the payload
+        run: |
+          echo "Event type: ${{ github.event.action }}"
+          echo "Payload value: ${{ github.event.client_payload.env }}"
+
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Run a one-line script
+        run: echo "Hello, the workflow is running successfully!"
+      - name: Echo the payload
+        run: |
+          echo "Event type: ${{ github.event.action }}"
+          echo "Payload value: ${{ github.event.client_payload.env }}"
