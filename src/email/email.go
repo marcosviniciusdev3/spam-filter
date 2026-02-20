@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io/fs"
 	"strings"
+
+	"github.com/marcosviniciusdev3/spam-filter/text"
 )
 
 type Email struct {
@@ -11,10 +13,6 @@ type Email struct {
 	Subject  string
 	Body     string
 }
-
-const (
-	ErrorFormat = "bad format on source file: "
-)
 
 func ReadEmailsFromFS(fileSystem fs.FS) ([]Email, error) {
 	entries, err := fs.ReadDir(fileSystem, ".")
@@ -43,7 +41,11 @@ func ReadEmailsFromFS(fileSystem fs.FS) ([]Email, error) {
 	return emails, nil
 }
 
-// From from raw text
+const (
+	ErrorFormat = "bad format on source file: "
+)
+
+// Parse over a specific dataset
 func (email *Email) Parse(src []byte) (*Email, error) {
 	if string(src[:8]) != "Subject:" {
 		return nil, errors.New(ErrorFormat)
@@ -64,4 +66,16 @@ func (email *Email) Parse(src []byte) (*Email, error) {
 	}
 
 	return email, nil
+}
+
+func DataSetTokenProbability(emails []Email, token []byte) (float32, error) {
+	var buf = make([]byte, 1024)
+	for _, e := range emails {
+		buf = append(buf, e.Subject...)
+		buf = append(buf, '\n')
+		buf = append(buf, e.Body...)
+		buf = append(buf, '\n')
+	}
+	prob, err := text.Probability(buf, token)
+	return prob, err
 }

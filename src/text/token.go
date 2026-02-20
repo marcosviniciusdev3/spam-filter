@@ -12,9 +12,17 @@ type Token struct {
 	Num   uint
 }
 
-func Count(text []byte) (Counter, error) {
+/* TODO: Make tokenize accept parameter
+   To process insensitive tokens */
+
+func Tokenize(data []byte) []string {
+	// sentitive
+	return strings.Fields(string(data))
+}
+
+func Count(text *[]byte) (Counter, error) {
 	var counter Counter
-	tokens := strings.Fields(string(text))
+	tokens := Tokenize(*text)
 	tokenMap := make(map[string]uint)
 	for _, t := range tokens {
 		tokenMap[t]++
@@ -26,25 +34,24 @@ func Count(text []byte) (Counter, error) {
 	return counter, nil
 }
 
-func Probability(data, token []byte) (float32, error) {
-	counter, _ := Count(data)
+// Work with small chucks of data
+/* TODO: Make data parameter be a hashmap of type map[string]uint */
 
-	println(len(counter))
+func Probability(data, token []byte) (float32, error) {
+	counter, _ := Count(&data)
 
 	i := slices.IndexFunc(counter, func(t Token) bool {
 		return t.Value == string(token)
 	})
 	if i == -1 {
-		return 0, nil
+		// panic("An error has occurred!")
+		return 0.0, nil
 	}
 
 	var total uint
 	for _, v := range counter {
 		total += v.Num
 	}
-
-	println(total)
-	println(len(counter))
 
 	return float32(counter[i].Num) / float32(total), nil
 }

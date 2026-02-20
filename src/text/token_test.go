@@ -20,8 +20,9 @@ var mock_counter = Counter{
 	{Value: "facit", Num: 3},
 }
 
-func TestWordCount(t *testing.T) {
-	got, _ := Count(slices.Clone([]byte(mock_text)))
+func TestWordCount_GivenRawText_SouldReturnCounter(t *testing.T) {
+	test := []byte(mock_text)
+	got, _ := Count(&test)
 
 	var want = slices.Clone(mock_counter)
 	s := tests.Slice[Token]{}
@@ -29,7 +30,7 @@ func TestWordCount(t *testing.T) {
 }
 
 // 1 - 0.01
-func TestWordProbability(t *testing.T) {
+func TestWordProbability_GivenToken_ShouldReturnProbabityInRawDataSet(t *testing.T) {
 
 	got, _ := Probability(slices.Clone([]byte(mock_text)), []byte("facit"))
 	var want float32 = 0.3

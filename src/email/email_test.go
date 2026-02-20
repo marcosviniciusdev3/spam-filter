@@ -2,21 +2,21 @@ package email
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
 	"reflect"
 	"testing"
 	"testing/fstest"
 )
 
-var stub_email = `Subject: my subject 
-lorem ipsum qui facit
-`
+func TestParse_GivenRawTextEmail_ShouldReturnEmailVar(t *testing.T) {
 
-func Test(t *testing.T) {
+	var stub_email = `Subject: my subject 
+	lorem ipsum qui facit
+	`
 	var email Email
 
-	got, _ := email.Parse([]byte(stub_email))
+	got, err := email.Parse([]byte(stub_email))
+	UnexpectedError(t, err)
 
 	want := Email{
 		FileName: "",
@@ -29,7 +29,8 @@ func Test(t *testing.T) {
 	}
 }
 
-func TestReadEmailsFromFS(t *testing.T) {
+// Test would fail if it encounters a directory
+func TestReadEmailsFromFS_GivenOnlyFilesDataset_ShouldReturnEmailSlice(t *testing.T) {
 	want := []Email{
 		{FileName: "ham-1.md", Subject: "subject of ham-1.md", Body: "body 1"},
 		{FileName: "spam-1.md", Subject: "subject of spam-1.md", Body: "body 2"},
@@ -41,10 +42,7 @@ func TestReadEmailsFromFS(t *testing.T) {
 	}
 
 	got, err := ReadEmailsFromFS(fs)
-
-	if err != nil {
-		fmt.Printf("%v", err)
-	}
+	UnexpectedError(t, err)
 
 	if len(got) != len(want) {
 		t.Errorf("got %d files, want %d files", len(got), len(want))
@@ -63,10 +61,34 @@ func (s StubFailingFS) Open(name string) (fs.File, error) {
 	return nil, errors.New("I always fail!")
 }
 
-func TestNewEmailsFromFSError(t *testing.T) {
+func TestNewEmailsFromFSError_WhenFSOpenFuncFails_ShouldFail(t *testing.T) {
 	_, err := ReadEmailsFromFS(StubFailingFS{})
 
 	if err == nil {
 		t.Errorf("%s want an error, got nil", err)
+	}
+}
+
+func TestDataSetTokenProbabity_GivenADataSet_ShouldReturnATokenProbability(t *testing.T) {
+	dataset := []Email{
+		{FileName: "ham-1.md", Subject: "subject of ham-1.md", Body: "body 1"},
+		{FileName: "spam-1.md", Subject: "subject of spam-1.md", Body: "body 2"},
+	}
+
+	got, err := DataSetTokenProbability(dataset, []byte("body"))
+	UnexpectedError(t, err)
+
+	want := float32(0.2)
+
+	if got != want {
+		t.Errorf("got %#v, want %#v", got, want)
+	}
+
+}
+
+func UnexpectedError(t testing.TB, err error) {
+	t.Helper()
+	if err != nil {
+		t.Errorf("Unexpected error, got %q", err.Error())
 	}
 }
